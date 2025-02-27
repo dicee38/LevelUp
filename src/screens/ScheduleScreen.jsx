@@ -1,12 +1,13 @@
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
-import { lightTheme, darkTheme } from '../theme/colors';
+// screens/ScheduleScreen.js
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../theme/ThemeContext'; // Импортируем useTheme
 
 export default function ScheduleScreen() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? darkTheme : lightTheme;
+  const { theme } = useTheme(); // Получаем текущую тему
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>  
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.header, { color: theme.text }]}>Расписание</Text>
     </View>
   );

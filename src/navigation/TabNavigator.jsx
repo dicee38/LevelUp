@@ -1,18 +1,19 @@
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
+import { useTheme } from '../theme/ThemeContext'; // Импортируем хук из контекста
 import HomeScreen from '../screens/HomeScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import JournalScreen from '../screens/JournalScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { useColorScheme } from 'react-native';
-import { lightTheme, darkTheme } from '../theme/colors';
+import { lightTheme, darkTheme } from '../theme/colors'; // Убедитесь, что путь к файлу правильный
+
 
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? darkTheme : lightTheme;
+  const { theme } = useTheme(); // Получаем текущую тему
 
   return (
     <NavigationContainer>
