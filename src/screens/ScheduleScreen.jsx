@@ -1,200 +1,318 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Modal, Button, Alert } from 'react-native';
-import { useTheme } from '../theme/ThemeContext'; // Импортируем useTheme
-import { lightTheme, darkTheme } from '../theme/colors'; // Импортируем цвета
+import { View, Text, TouchableOpacity, FlatList, Modal, TextInput, Alert, ScrollView } from 'react-native';
 
 const SchedulePage = () => {
-  const { theme } = useTheme(); // Получаем текущую тему
-  const [tasks, setTasks] = useState([
-    { time: '10:00', description: 'Встреча с командой', color: 'lightBlue' },
-    { time: '12:00', description: 'Обсуждение проекта', color: 'green' },
-    { time: '14:00', description: 'Рабочие задачи', color: 'orange' },
-    { time: '16:00', description: 'Планирование', color: 'lightBlue' },
-  ]);
+  const [viewMode, setViewMode] = useState('day'); // "day", "week", "month"
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [tasks, setTasks] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [newTask, setNewTask] = useState({ time: '', description: '', color: '#FFFFFF' }); // Добавлен цвет задачи
+  const [editingTask, setEditingTask] = useState(null); // Для редактирования
 
-  const [showModal, setShowModal] = useState(false); // Состояние для отображения модального окна
-  const [newTask, setNewTask] = useState({ time: '', description: '', color: 'lightBlue' }); // Данные для новой задачи
-  const [editingIndex, setEditingIndex] = useState(null); // Индекс задачи, которую редактируем
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
 
-  // Функция для открытия модального окна для добавления новой задачи или редактирования
-  const openModal = (index) => {
-    if (index !== null) {
-      setEditingIndex(index);
-      setNewTask({ time: tasks[index]?.time || '', description: tasks[index]?.description || '', color: tasks[index]?.color || 'lightBlue' });
-    } else {
-      setNewTask({ time: '', description: '', color: 'lightBlue' });
-    }
+  const handleDayPress = (date) => {
+    setSelectedDate(date);
+    setViewMode('day');
+  };
+
+  const handleAddTask = () => {
+    if (!newTask.time || !newTask.description) return;
+
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    setTasks((prev) => ({
+      ...prev,
+      [dateKey]: [...(prev[dateKey] || []), { ...newTask, id: new Date().getTime() }],
+    }));
+
+    setShowModal(false);
+    setNewTask({ time: '', description: '', color: '#FFFFFF' });
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setNewTask({ time: task.time, description: task.description, color: task.color });
     setShowModal(true);
   };
 
-  // Функция для добавления новой задачи или редактирования существующей
-  const addTask = () => {
-    if (newTask.time && newTask.description) {
-      if (editingIndex !== null) {
-        const updatedTasks = [...tasks];
-        updatedTasks[editingIndex] = newTask; // Обновляем редактируемую задачу
-        setTasks(updatedTasks);
-      } else {
-        setTasks([...tasks, newTask]); // Добавляем новую задачу
-      }
-      setShowModal(false);
-      setEditingIndex(null); // Сбрасываем индекс редактируемой задачи
-    }
+  const handleUpdateTask = () => {
+    if (!newTask.time || !newTask.description) return;
+
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    const updatedTasks = tasks[dateKey].map((task) =>
+      task.id === editingTask.id ? { ...task, time: newTask.time, description: newTask.description, color: newTask.color } : task
+    );
+
+    setTasks((prev) => ({
+      ...prev,
+      [dateKey]: updatedTasks,
+    }));
+
+    setShowModal(false);
+    setNewTask({ time: '', description: '', color: '#FFFFFF' });
+    setEditingTask(null);
   };
 
-  // Функция для удаления задачи
-  const deleteTask = (index) => {
-    Alert.alert(
-      'Удалить задачу?',
-      'Вы уверены, что хотите удалить эту задачу?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Удалить',
-          onPress: () => {
-            const updatedTasks = tasks.filter((_, i) => i !== index); // Удаляем задачу по индексу
-            setTasks(updatedTasks);
-          },
-        },
-      ],
-      { cancelable: true }
+  const handleDeleteTask = (task) => {
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    const updatedTasks = tasks[dateKey].filter((t) => t.id !== task.id);
+    setTasks((prev) => ({
+      ...prev,
+      [dateKey]: updatedTasks,
+    }));
+  };
+
+  const renderTaskList = () => {
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    return tasks[dateKey] ? (
+      <FlatList
+        data={tasks[dateKey]}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View
+            style={{
+              padding: 10,
+              backgroundColor: item.color,
+              marginBottom: 5,
+              borderRadius: 10,
+            }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.time}</Text>
+            <Text>{item.description}</Text>
+            <TouchableOpacity onPress={() => handleEditTask(item)} style={{ marginTop: 5, backgroundColor: '#4A90E2', padding: 5, borderRadius: 5 }}>
+              <Text style={{ color: 'white' }}>Редактировать</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDeleteTask(item)}
+              style={{ marginTop: 5, backgroundColor: '#FF3B30', padding: 5, borderRadius: 5 }}
+            >
+              <Text style={{ color: 'white' }}>Удалить</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    ) : (
+      <Text style={{ textAlign: 'center', marginTop: 20 }}>Нет задач</Text>
+    );
+  };
+
+  const renderWeekView = () => {
+    const startOfWeek = new Date(selectedDate);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    return (
+      <ScrollView horizontal contentContainerStyle={{ flexDirection: 'row', padding: 10 }}>
+        {Array.from({ length: 7 }).map((_, i) => {
+          const day = new Date(startOfWeek);
+          day.setDate(startOfWeek.getDate() + i);
+          return (
+            <TouchableOpacity
+              key={i}
+              onPress={() => handleDayPress(day)}
+              style={{
+                padding: 15,
+                margin: 5,
+                borderRadius: 10,
+                backgroundColor: day.toDateString() === selectedDate.toDateString() ? '#4A90E2' : '#ddd',
+              }}
+            >
+              <Text style={{ fontSize: 16 }}>{day.getDate()}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    );
+  };
+
+  const renderMonthView = () => {
+    const daysInMonth = getDaysInMonth(selectedDate);
+    const monthDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    return (
+      <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', padding: 10 }}>
+        {monthDays.map((day) => {
+          const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day);
+          return (
+            <TouchableOpacity
+              key={day}
+              onPress={() => handleDayPress(date)}
+              style={{
+                width: '14%',
+                aspectRatio: 1,
+                margin: 2,
+                borderRadius: 5,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: date.toDateString() === selectedDate.toDateString() ? '#4A90E2' : '#ddd',
+              }}
+            >
+              <Text style={{ fontSize: 16 }}>{day}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     );
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Заголовок страницы */}
-      <View style={styles.header}>
-        <Text style={[styles.greeting, { color: theme.text }]}>Расписание на день</Text>
-        <Text style={[styles.subtitle, { color: theme.text }]}>18 января, Чт</Text>
-      </View>
-
-      {/* Карточка с планом дня */}
-      <View style={[styles.card, { backgroundColor: theme.card }]}>
-        <Text style={styles.sectionTitle}>План на день:</Text>
-
-        {/* Кнопка добавления задачи в месте первого дела */}
-        <TouchableOpacity
-          style={[styles.summaryBox, { backgroundColor: theme.lightBlue }]}
-          onPress={() => openModal(null)} // При нажатии на кнопку открываем меню для добавления задачи
-        >
-          <Text style={styles.summaryText}>+</Text>
-        </TouchableOpacity>
-
-        {/* Задачи */}
-        {tasks.slice(1).map((task, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.summaryBox, { backgroundColor: theme[task.color] }]}
-            onPress={() => openModal(index)} // При нажатии на задачу открываем меню для редактирования
-          >
-            <Text style={styles.summaryText}>{task.time}</Text>
-            <Text style={styles.summaryValue}>{task.description}</Text>
+    <View style={{ flex: 1, padding: 20 }}>
+      {/* Переключение режимов */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 }}>
+        {['day', 'week', 'month'].map((mode) => (
+          <TouchableOpacity key={mode} onPress={() => setViewMode(mode)}>
+            <Text style={{ fontSize: 18, fontWeight: viewMode === mode ? 'bold' : 'normal' }}>
+              {mode === 'day' ? 'День' : mode === 'week' ? 'Неделя' : 'Месяц'}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Модальное окно для добавления/редактирования задачи */}
-      <Modal visible={showModal} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>
-              {editingIndex !== null ? 'Редактировать задачу' : 'Добавить задачу'}
+      {/* Текущая дата */}
+      <Text style={{ fontSize: 20, textAlign: 'center', marginBottom: 10 }}>
+        {selectedDate.toLocaleDateString()}
+      </Text>
+
+      {/* Контейнер с задачами */}
+      <View style={{ flex: 1, backgroundColor: 'white', padding: 10, borderRadius: 10 }}>
+        {viewMode === 'day' && renderTaskList()}
+        {viewMode === 'week' && renderWeekView()}
+        {viewMode === 'month' && renderMonthView()}
+      </View>
+
+      {/* Кнопки */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
+        <TouchableOpacity style={{ backgroundColor: '#4A90E2', padding: 15, borderRadius: 10 }}>
+          <Text style={{ color: 'white' }}>Умное заполнение</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ backgroundColor: '#50E3C2', padding: 15, borderRadius: 10 }}>
+          <Text style={{ color: 'white' }}>Куда сходить</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ backgroundColor: '#F5A623', padding: 15, borderRadius: 10 }}>
+          <Text style={{ color: 'white' }}>Советы</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Кнопка "+" */}
+      <TouchableOpacity
+        onPress={() => setShowModal(true)}
+        style={{
+          position: 'absolute',
+          bottom: 90,
+          right: 20,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: '#007AFF',
+          justifyContent: 'center',
+          alignItems: 'center',
+          elevation: 5,
+        }}
+      >
+        <Text style={{ fontSize: 36, color: 'white', fontWeight: 'bold' }}>+</Text>
+      </TouchableOpacity>
+
+      {/* Модалка добавления задач */}
+      <Modal visible={showModal} animationType="slide" transparent>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View style={{ width: '90%', padding: 25, backgroundColor: 'white', borderRadius: 15 }}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' }}>
+              {editingTask ? 'Редактировать задачу' : 'Добавить задачу'}
             </Text>
+
+            <Text style={{ fontSize: 16, marginBottom: 5 }}>Время</Text>
             <TextInput
-              style={[styles.input, { borderColor: theme.primary }]}
-              placeholder="Время"
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 10,
+                padding: 12,
+                fontSize: 18,
+                marginBottom: 15,
+              }}
+              placeholder="Например, 14:00"
               value={newTask.time}
               onChangeText={(text) => setNewTask({ ...newTask, time: text })}
             />
+
+            <Text style={{ fontSize: 16, marginBottom: 5 }}>Описание</Text>
             <TextInput
-              style={[styles.input, { borderColor: theme.primary }]}
-              placeholder="Описание"
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 10,
+                padding: 12,
+                fontSize: 18,
+                height: 80,
+                textAlignVertical: 'top',
+                marginBottom: 20,
+              }}
+              placeholder="Введите описание задачи"
+              multiline
               value={newTask.description}
               onChangeText={(text) => setNewTask({ ...newTask, description: text })}
             />
 
-            {/* Выбор цвета задачи */}
-            <View style={styles.colorPicker}>
-              <TouchableOpacity
-                style={[styles.colorOption, { backgroundColor: theme.lightBlue }]}
-                onPress={() => setNewTask({ ...newTask, color: 'lightBlue' })}
-              />
-              <TouchableOpacity
-                style={[styles.colorOption, { backgroundColor: theme.green }]}
-                onPress={() => setNewTask({ ...newTask, color: 'green' })}
-              />
-              <TouchableOpacity
-                style={[styles.colorOption, { backgroundColor: theme.orange }]}
-                onPress={() => setNewTask({ ...newTask, color: 'orange' })}
-              />
+            {/* Цвет задачи */}
+            <Text style={{ fontSize: 16, marginBottom: 5 }}>Цвет задачи</Text>
+            <View style={{ flexDirection: 'row', marginBottom: 15 }}>
+              {['#FFB6C1', '#ADD8E6', '#FFFFE0', '#90EE90'].map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  onPress={() => setNewTask({ ...newTask, color })}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    margin: 5,
+                    borderRadius: 15,
+                    backgroundColor: color,
+                    borderWidth: newTask.color === color ? 2 : 0,
+                    borderColor: 'black',
+                  }}
+                />
+              ))}
             </View>
 
-            <Button title="Сохранить" onPress={addTask} />
-            <Button title="Отмена" onPress={() => setShowModal(false)} color="red" />
-            
-            {/* Кнопка удаления задачи в модальном окне */}
-            {editingIndex !== null && (
-              <Button title="Удалить" onPress={() => deleteTask(editingIndex)} color="red" />
-            )}
+            {/* Кнопки сохранения и отмены */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <TouchableOpacity
+                onPress={() => setShowModal(false)}
+                style={{
+                  backgroundColor: '#FF3B30',
+                  padding: 15,
+                  borderRadius: 10,
+                  width: '48%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: 'white' }}>Отмена</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={editingTask ? handleUpdateTask : handleAddTask}
+                style={{
+                  backgroundColor: '#4A90E2',
+                  padding: 15,
+                  borderRadius: 10,
+                  width: '48%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: 'white' }}>
+                  {editingTask ? 'Обновить задачу' : 'Добавить задачу'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
-
-      {/* Кнопки снизу */}
-      <View style={styles.additionalFunctionsContainer}>
-        <TouchableOpacity style={[styles.functionItem, { backgroundColor: theme.secondary }]}>
-          <Text style={[styles.functionItemText, { color: theme.text }]}>Задачи</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.functionItem, { backgroundColor: theme.secondary }]}>
-          <Text style={[styles.functionItemText, { color: theme.text }]}>Календарь</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.functionItem, { backgroundColor: theme.secondary }]}>
-          <Text style={[styles.functionItemText, { color: theme.text }]}>Сообщения</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  header: { marginBottom: 20 },
-  greeting: { fontSize: 22, fontWeight: 'bold' },
-  subtitle: { fontSize: 16 },
-  card: { borderRadius: 10, padding: 15, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold' },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 },
-  summaryBox: {
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginVertical: 10,
-    width: '100%',
-  },
-  summaryText: { fontSize: 40, fontWeight: 'bold' },
-  summaryValue: { fontSize: 16, fontWeight: 'bold' },
-  addEventButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  addEventButtonText: { fontSize: 40, color: '#fff' },
-  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContent: { padding: 20, borderRadius: 10, width: '80%' },
-  modalTitle: { fontSize: 20, marginBottom: 10 },
-  input: { height: 40, borderColor: '#ccc', borderWidth: 1, marginBottom: 10, paddingLeft: 10 },
-  colorPicker: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  colorOption: { width: 30, height: 30, borderRadius: 15 },
-  additionalFunctionsContainer: { marginTop: 30 },
-  functionItem: { padding: 15, borderRadius: 10, marginVertical: 5 },
-  functionItemText: { fontSize: 16, fontWeight: 'bold' },
-});
 
 export default SchedulePage;

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../theme/ThemeContext'; // Импортируем useTheme
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const { theme } = useTheme(); // Получаем текущую тему
+  const [goalProgress, setGoalProgress] = useState(0.6); // Прогресс для целей 60%
+  const [workoutProgress, setWorkoutProgress] = useState(0.4); // Прогресс для тренировок 40%
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -11,7 +13,7 @@ export default function HomeScreen() {
         <Text style={[styles.greeting, { color: theme.text }]}>Привет, Санек!</Text>
         <Text style={[styles.subtitle, { color: theme.text }]}>Хорошего дня!</Text>
       </View>
-      
+
       <View style={[styles.card, { backgroundColor: theme.card }]}>
         <Text style={styles.sectionTitle}>Сводка дня:</Text>
         <View style={styles.summaryRow}>
@@ -26,21 +28,27 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Достижения</Text>
-        <Text style={[styles.link, { color: theme.link }]}>Все</Text>
-      </View>
-
+      {/* Контейнеры для Целей и Тренировок в одну строку */}
       <View style={styles.achievements}>
-        <View style={[styles.achievementBox, { backgroundColor: theme.lightBlue }]}>
+        {/* Контейнер для Целей */}
+        <View style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10, marginRight: 10 }]}>
           <Text style={styles.achievementTitle}>Цели:</Text>
           <Text style={styles.achievementValue}>3 дня подряд</Text>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${goalProgress * 100}%`, backgroundColor: theme.purple }]} />
+          </View>
         </View>
-        <View style={[styles.achievementBox, { backgroundColor: theme.lightOrange }]}>
+
+        {/* Контейнер для Тренировок */}
+        <View style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10 }]}>
           <Text style={styles.achievementTitle}>Тренировки:</Text>
           <Text style={styles.achievementValue}>Спортсмен</Text>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${workoutProgress * 100}%`, backgroundColor: theme.orange }]} />
+          </View>
         </View>
       </View>
+
     </ScrollView>
   );
 }
@@ -58,8 +66,21 @@ const styles = StyleSheet.create({
   summaryBox: { flex: 1, padding: 10, borderRadius: 10, alignItems: 'center', marginHorizontal: 5 },
   summaryText: { fontSize: 14 },
   summaryValue: { fontSize: 16, fontWeight: 'bold' },
-  achievements: { flexDirection: 'row', justifyContent: 'space-between' },
-  achievementBox: { flex: 1, padding: 10, borderRadius: 10, alignItems: 'center', marginHorizontal: 5 },
+  achievements: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }, // Теперь это строка
+  achievementBox: { flex: 1, alignItems: 'center', padding: 10, borderRadius: 10, marginHorizontal: 5 },
   achievementTitle: { fontSize: 14 },
   achievementValue: { fontSize: 16, fontWeight: 'bold' },
+
+  // Стиль для прогресс-баров
+  progressBarContainer: {
+    height: 8, // Высота прогресс-бара
+    borderRadius: 5,
+    marginTop: 10,
+    backgroundColor: '#E0E0E0', // Легкая серовато-белая полоса для фона
+    width: '100%', // Чтобы прогресс-бар заполнил контейнер
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 5,
+  },
 });
