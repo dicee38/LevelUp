@@ -1,5 +1,6 @@
 const express = require('express');
 const { Pool } = require('pg');
+const cors = require('cors'); // Импортируем cors
 
 const app = express();
 const port = 5000;
@@ -15,6 +16,9 @@ const pool = new Pool({
 
 // Middleware для обработки JSON
 app.use(express.json());
+
+// Включаем CORS
+app.use(cors());
 
 // Пример API endpoint
 app.get('/tasks', async (req, res) => {
