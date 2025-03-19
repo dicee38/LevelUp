@@ -8,11 +8,21 @@ const Stack = createStackNavigator();
 
 export default function StackNavigator() {
   return (
-    <Stack.Navigator>
-      {/* TabNavigator будет основной частью навигации */}
-      <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
-      {/* Экран питания будет добавлен как отдельный экран */}
-      <Stack.Screen name="Nutrition" component={NutritionScreen} />
-    </Stack.Navigator>
+    
+      <NavigationContainer>
+            <Tab.Navigator
+              screenOptions={{
+                tabBarStyle: { backgroundColor: theme.card },
+                tabBarActiveTintColor: theme.blue,
+              }}
+            >
+              <Tab.Screen name="Главная" component={HomeScreen} />
+              <Tab.Screen name="Расписание" component={ScheduleScreen} />
+              <Tab.Screen name="Дневник" component={JournalScreen} />
+              <Tab.Screen name="Тренировки" component={WorkoutScreen} />
+              <Tab.Screen name="Настройки" component={SettingsScreen} />
+            </Tab.Navigator>
+          </NavigationContainer>
+   
   );
 }

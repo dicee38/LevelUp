@@ -5,8 +5,9 @@ import TabNavigator from './src/navigation/TabNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { lightTheme, darkTheme } from './src/theme/colors';
 import axios from 'axios';
-
-
+import { NavigationContainer } from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import NutritionScreen from "./src/screens/NutritionScreen"
 export default function App() {
   return (
     <ThemeProvider>
@@ -32,10 +33,13 @@ const AppContent = () => {
       });
   }, [theme]);
 
+  const Stack = createStackNavigator()
   return (
     <View style={{ flex: 1 }}>
+
+
+     
       <TabNavigator />
-      <Text>Tasks:</Text>
       {tasks.map(task => (
         <Text key={task.id}>{task.title}</Text>
       ))}

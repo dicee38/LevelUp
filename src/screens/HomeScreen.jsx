@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeContext'; // Импортируем useTheme
 
 export default function HomeScreen({ navigation }) {
@@ -17,38 +17,49 @@ export default function HomeScreen({ navigation }) {
       <View style={[styles.card, { backgroundColor: theme.card }]}>
         <Text style={styles.sectionTitle}>Сводка дня:</Text>
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryBox, { backgroundColor: theme.lightBlue }]}>
+          <TouchableOpacity
+            style={[styles.summaryBox, { backgroundColor: theme.lightBlue }]}
+            onPress={() => navigation.navigate('Расписание')} // Переход на экран "Расписание"
+          >
             <Text style={styles.summaryText}>Задачи:</Text>
             <Text style={styles.summaryValue}>3/5</Text>
-          </View>
-          <View style={[styles.summaryBox, { backgroundColor: theme.lightGreen }]}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.summaryBox, { backgroundColor: theme.lightGreen }]}
+            onPress={() => navigation.navigate('Дневник')} // Переход на экран "Дневник"
+          >
             <Text style={styles.summaryText}>Настроение:</Text>
             <Text style={styles.summaryValue}>Хорошее</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Контейнеры для Целей и Тренировок в одну строку */}
       <View style={styles.achievements}>
         {/* Контейнер для Целей */}
-        <View style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10, marginRight: 10 }]}>
+        <TouchableOpacity
+          style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10, marginRight: 10 }]}
+          onPress={() => navigation.navigate('Расписание')} // Переход на экран "Цели"
+        >
           <Text style={styles.achievementTitle}>Цели:</Text>
           <Text style={styles.achievementValue}>3 дня подряд</Text>
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: `${goalProgress * 100}%`, backgroundColor: theme.purple }]} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Контейнер для Тренировок */}
-        <View style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10 }]}>
+        <TouchableOpacity
+          style={[styles.achievementBox, { backgroundColor: theme.card, width: 138, height: 122, borderRadius: 10, justifyContent: 'space-between', padding: 10 }]}
+          onPress={() => navigation.navigate('Тренировки')} // Переход на экран "Тренировки"
+        >
           <Text style={styles.achievementTitle}>Тренировки:</Text>
           <Text style={styles.achievementValue}>Спортсмен</Text>
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: `${workoutProgress * 100}%`, backgroundColor: theme.orange }]} />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
-
     </ScrollView>
   );
 }

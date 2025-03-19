@@ -8,6 +8,7 @@ import JournalScreen from '../screens/JournalScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { lightTheme, darkTheme } from '../theme/colors'; // Убедитесь, что путь к файлу правильный
+import NutritionScreen from 'src/screens/NutritionScreen';
 
 
 
@@ -27,6 +28,7 @@ export default function TabNavigator() {
         <Tab.Screen name="Главная" component={HomeScreen} />
         <Tab.Screen name="Расписание" component={ScheduleScreen} />
         <Tab.Screen name="Дневник" component={JournalScreen} />
+       
         <Tab.Screen name="Тренировки" component={WorkoutScreen} />
         <Tab.Screen name="Настройки" component={SettingsScreen} />
       </Tab.Navigator>
