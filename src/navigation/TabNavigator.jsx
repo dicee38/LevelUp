@@ -10,6 +10,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import { lightTheme, darkTheme } from '../theme/colors'; // Убедитесь, что путь к файлу правильный
 
 
+
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {

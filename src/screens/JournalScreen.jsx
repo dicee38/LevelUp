@@ -1,10 +1,11 @@
-import React, { useReducer, useEffect, useCallback } from 'react';
+import React, { useReducer, useEffect, useState, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, FlatList, TouchableWithoutFeedback, Keyboard, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const initialState = {
   entries: [],
-  newEntry: { title: '', content: '', color: '#FFFFFF' },
+  newEntry: { title: '', content: '', color: '#FFFFFF', mood: 'normal' },
   showModal: false,
   editingEntry: null,
 };
@@ -20,7 +21,7 @@ function journalReducer(state, action) {
     case 'SET_EDITING_ENTRY':
       return { ...state, editingEntry: action.payload };
     case 'CLEAR_NEW_ENTRY':
-      return { ...state, newEntry: { title: '', content: '', color: '#FFFFFF' } };
+      return { ...state, newEntry: { title: '', content: '', color: '#FFFFFF', mood: 'normal' } };
     case 'REMOVE_ENTRY':
       return {
         ...state,
@@ -36,22 +37,40 @@ function journalReducer(state, action) {
 export default function JournalScreen() {
   const { theme } = useTheme();
   const [state, dispatch] = useReducer(journalReducer, initialState);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredEntries, setFilteredEntries] = useState(state.entries);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+
+  
 
   useEffect(() => {
-    // Имитируем загрузку данных
     const initialEntries = [
-      { id: 1, title: 'Запись 1', content: 'Содержание записи 1', color: '#FFB6C1', createdAt: new Date().toLocaleString() },
-      { id: 2, title: 'Запись 2', content: 'Содержание записи 2', color: '#ADD8E6', createdAt: new Date().toLocaleString() },
+      { id: 1, title: 'Запись 1', content: 'Содержание записи 1', color: '#FFB6C1', mood: 'good', createdAt: new Date().toLocaleString() },
+      { id: 2, title: 'Запись 2', content: 'Содержание записи 2', color: '#ADD8E6', mood: 'normal', createdAt: new Date().toLocaleString() },
     ];
     dispatch({ type: 'SET_ENTRIES', payload: initialEntries });
   }, []);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setFilteredEntries(
+        state.entries.filter((entry) =>
+          entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.content.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredEntries(state.entries);
+    }
+  }, [searchQuery, state.entries]);
 
   const handleAddEntry = useCallback(() => {
     if (!state.newEntry.title || !state.newEntry.content) return;
     const newEntry = { 
       ...state.newEntry, 
       id: new Date().getTime(),
-      createdAt: new Date().toLocaleString() // Добавление времени создания записи
+      createdAt: new Date().toLocaleString(),
     };
     dispatch({ type: 'SET_ENTRIES', payload: [...state.entries, newEntry] });
     dispatch({ type: 'CLEAR_NEW_ENTRY' });
@@ -60,7 +79,7 @@ export default function JournalScreen() {
 
   const handleEditEntry = useCallback((entry) => {
     dispatch({ type: 'SET_EDITING_ENTRY', payload: entry });
-    dispatch({ type: 'SET_NEW_ENTRY', payload: { title: entry.title, content: entry.content, color: entry.color } });
+    dispatch({ type: 'SET_NEW_ENTRY', payload: { title: entry.title, content: entry.content, color: entry.color, mood: entry.mood } });
     dispatch({ type: 'TOGGLE_MODAL' });
   }, []);
 
@@ -68,7 +87,7 @@ export default function JournalScreen() {
     if (!state.newEntry.title || !state.newEntry.content) return;
     const updatedEntries = state.entries.map((entry) =>
       entry.id === state.editingEntry.id
-        ? { ...entry, title: state.newEntry.title, content: state.newEntry.content, color: state.newEntry.color }
+        ? { ...entry, title: state.newEntry.title, content: state.newEntry.content, color: state.newEntry.color, mood: state.newEntry.mood }
         : entry
     );
     dispatch({ type: 'SET_ENTRIES', payload: updatedEntries });
@@ -88,13 +107,14 @@ export default function JournalScreen() {
   const renderEntries = () => {
     return (
       <FlatList
-        data={state.entries}
+        data={filteredEntries}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleEditEntry(item)} style={[styles.entry, { backgroundColor: item.color }]}>
             <Text style={[styles.entryTitle, { color: theme.text }]}>{item.title}</Text>
             <Text style={{ color: theme.text }}>{item.content.slice(0, 100)}...</Text>
             <Text style={{ color: theme.text, fontSize: 12, marginTop: 5 }}>{`Создано: ${item.createdAt}`}</Text>
+            <Text style={{ color: theme.text, fontSize: 12, marginTop: 5 }}>{`Настроение: ${item.mood}`}</Text>
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.entryList}
@@ -102,10 +122,39 @@ export default function JournalScreen() {
     );
   };
 
+  
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.header, { color: theme.text }]}>Дневник</Text>
+
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
+          <Icon name="filter" size={24} color={theme.text} />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)} style={styles.iconButton}>
+          <Icon name="search" size={24} color={theme.text} />
+        </TouchableOpacity>
+      </View>
+
+      {searchVisible && (
+        <TextInput
+          style={[styles.input, { marginBottom: 15 }]}
+          placeholder="Поиск по записям"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      )}
+
+      {filterVisible && (
+        <TextInput
+          style={[styles.input, { marginBottom: 15 }]}
+          placeholder="Фильтровать по дате"
+        />
+      )}
+
       {renderEntries()}
+
       <TouchableOpacity onPress={() => dispatch({ type: 'TOGGLE_MODAL' })} style={styles.addButton}>
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
@@ -131,20 +180,20 @@ export default function JournalScreen() {
                 onChangeText={(text) => dispatch({ type: 'SET_NEW_ENTRY', payload: { ...state.newEntry, content: text } })}
                 multiline
               />
-              
-              <Text style={{ fontSize: 16, marginBottom: 5 }}>Цвет</Text>
+
+              <Text style={{ fontSize: 16, marginBottom: 5 }}>Настроение</Text>
               <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 15 }}>
-                {['#FFB6C1', '#ADD8E6', '#FFFFE0', '#90EE90'].map((color) => (
+                {['Хорошее', 'Нормальное', 'Плохое'].map((mood) => (
                   <TouchableOpacity
-                    key={color}
-                    onPress={() => dispatch({ type: 'SET_NEW_ENTRY', payload: { ...state.newEntry, color } })}
+                    key={mood}
+                    onPress={() => dispatch({ type: 'SET_NEW_ENTRY', payload: { ...state.newEntry, mood } })}
                     style={{
                       width: 40,
                       height: 40,
                       borderRadius: 20,
                       margin: 5,
-                      backgroundColor: color,
-                      borderWidth: state.newEntry.color === color ? 3 : 0, 
+                      backgroundColor: mood === 'Хорошее' ? '#90EE90' : mood === 'Плохое' ? '#FF6347' : '#ADD8E6',
+                      borderWidth: state.newEntry.mood === mood ? 3 : 0,
                       borderColor: '#707070',
                     }}
                   />
@@ -152,13 +201,8 @@ export default function JournalScreen() {
               </View>
 
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  onPress={state.editingEntry ? handleUpdateEntry : handleAddEntry}
-                  style={styles.button}
-                >
-                  <Text style={styles.buttonText}>
-                    {state.editingEntry ? 'Сохранить' : 'Добавить'}
-                  </Text>
+                <TouchableOpacity onPress={state.editingEntry ? handleUpdateEntry : handleAddEntry} style={styles.button}>
+                  <Text style={styles.buttonText}>{state.editingEntry ? 'Сохранить' : 'Добавить'}</Text>
                 </TouchableOpacity>
                 {state.editingEntry && (
                   <TouchableOpacity onPress={handleDeleteEntry} style={[styles.button, styles.deleteButton]}>
@@ -207,4 +251,6 @@ const styles = StyleSheet.create({
   deleteButton: { backgroundColor: '#FF6347' },
   cancelButton: { backgroundColor: '#808080' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  iconButton: { marginHorizontal: 10 },
+  buttonsContainer: { flexDirection: 'row', justifyContent: 'flex-start', marginBottom: 15 },
 });

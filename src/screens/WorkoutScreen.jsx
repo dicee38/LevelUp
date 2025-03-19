@@ -1,10 +1,13 @@
+// WorkoutScreen.js
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { useTheme } from '../theme/ThemeContext'; // Импортируем useTheme
+import { useNavigation } from '@react-navigation/native'; // Импортируем useNavigation для навигации
 
 export default function WorkoutScreen() {
   const { theme } = useTheme(); // Получаем текущую тему
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const navigation = useNavigation(); // Хук для навигации
 
   // Список тренировок
   const workouts = [
@@ -60,7 +63,10 @@ export default function WorkoutScreen() {
       {renderExercises()}
 
       {/* Кнопка питания */}
-      <TouchableOpacity style={styles.nutritionButton}>
+      <TouchableOpacity
+        style={styles.nutritionButton}
+        onPress={() => navigation.navigate('Nutrition')} // Переход на страницу с питанием
+      >
         <Text style={styles.buttonText}>Посмотреть питание</Text>
       </TouchableOpacity>
     </View>
