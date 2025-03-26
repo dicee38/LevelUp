@@ -1,28 +1,22 @@
-// src/navigation/StackNavigator.js
 import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import TabNavigator from './TabNavigator'; // Импортируем TabNavigator
-import NutritionScreen from '../screens/NutritionScreen'; // Импортируем экран питания
+import WorkoutScreen from './WorkoutScreen';  // ваш экран тренировки
+import NutritionScreen from '../screens/NutritionScreen';  // ваш экран питания
+import ProfileScreen from '../screens/ProfileScreen';  // ваш экран профиля
+import SettingsScreen from '../screens/SettingsScreen';  // ваш экран настроек
 
 const Stack = createStackNavigator();
 
-export default function StackNavigator() {
+export default function App() {
   return (
-    
-      <NavigationContainer>
-            <Tab.Navigator
-              screenOptions={{
-                tabBarStyle: { backgroundColor: theme.card },
-                tabBarActiveTintColor: theme.blue,
-              }}
-            >
-              <Tab.Screen name="Главная" component={HomeScreen} />
-              <Tab.Screen name="Расписание" component={ScheduleScreen} />
-              <Tab.Screen name="Дневник" component={JournalScreen} />
-              <Tab.Screen name="Тренировки" component={WorkoutScreen} />
-              <Tab.Screen name="Настройки" component={SettingsScreen} />
-            </Tab.Navigator>
-          </NavigationContainer>
-   
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Workout">
+        <Stack.Screen name="Workout" component={WorkoutScreen} />
+        <Stack.Screen name="Питание" component={NutritionScreen} />
+        <Stack.Screen name="Профиль" component={ProfileScreen} />
+        <Stack.Screen name="Настройки" component={SettingsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

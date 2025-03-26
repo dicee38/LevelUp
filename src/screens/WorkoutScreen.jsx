@@ -148,7 +148,7 @@ export default function WorkoutScreen() {
       {/* Кнопка питания */}
       <TouchableOpacity
         style={styles.nutritionButton}
-        onPress={() => navigation.navigate('Nutrition')} // Переход на страницу с питанием
+        onPress={() => navigation.navigate('Питание')} // Переход на страницу с питанием
       >
         <Text style={styles.buttonText}>Посмотреть питание</Text>
       </TouchableOpacity>
