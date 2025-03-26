@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View, Text } from 'react-native';
 import { registerRootComponent } from 'expo';
-import TabNavigator from './src/navigation/TabNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { lightTheme, darkTheme } from './src/theme/colors';
 import axios from 'axios';
-import { NavigationContainer } from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import NutritionScreen from "./src/screens/NutritionScreen"
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
-}
+import { NavigationContainer } from '@react-navigation/native'; // Навигация будет только один раз здесь
+import { createStackNavigator } from '@react-navigation/stack';
+import TabNavigator from './src/navigation/TabNavigator';
+import ProfileScreen from './src/screens/ProfileScreen';
+import NutritionScreen from './src/screens/NutritionScreen';
+
+const Stack = createStackNavigator();
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -33,18 +29,25 @@ const AppContent = () => {
       });
   }, [theme]);
 
-  const Stack = createStackNavigator()
   return (
-    <View style={{ flex: 1 }}>
-
-
-     
-      <TabNavigator />
-      {tasks.map(task => (
-        <Text key={task.id}>{task.title}</Text>
-      ))}
-    </View>
+    <Stack.Navigator initialRouteName="TabNavigator">
+      <Stack.Screen name="TabNavigator" component={TabNavigator}
+      options={{ headerShown: false }} />
+      <Stack.Screen name="Питание" component={NutritionScreen} />
+      <Stack.Screen name="Профиль" component={ProfileScreen} />
+    </Stack.Navigator>
+    
   );
 };
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <NavigationContainer> {/* Здесь NavigationContainer только один раз */}
+        <AppContent />
+      </NavigationContainer>
+    </ThemeProvider>
+  );
+}
 
 registerRootComponent(App);
