@@ -1,22 +1,30 @@
-version: '3.8'
-
 services:
-  app:
-    build: .
+  backend:
+    build: ./levelup-backend  # Путь к папке с бэкендом
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
-      - .:/app
+      - ./levelup-backend:/app
+      - /app/node_modules  # Важно для избежания перезаписи
+    env_file:
+      - .env  # Подключаем общий .env файл
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   db:
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
