@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View, Text } from 'react-native';
 import { registerRootComponent } from 'expo';
-import TabNavigator from '../src/navigation/TabNavigator';
-import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
-import { lightTheme, darkTheme } from '../src/theme/colors';
+import TabNavigator from './src/navigation/TabNavigator';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { lightTheme, darkTheme } from './src/theme/colors';
 import axios from 'axios';
 import { NavigationContainer } from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import NutritionScreen from "../src/screens/NutritionScreen"
+import NutritionScreen from "./src/screens/NutritionScreen"
 export default function App() {
   return (
     <ThemeProvider>
