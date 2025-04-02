@@ -1,17 +1,11 @@
-# Используем официальный образ Python
-FROM python:3.9-slim
+FROM node:16-alpine
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем зависимости
-COPY requirements.txt .
+COPY package*.json ./
+RUN npm install
 
-# Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Копируем исходный код
 COPY . .
 
-# Команда для запуска приложения
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000
+CMD ["node", "index.js"]
